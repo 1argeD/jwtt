@@ -1,10 +1,12 @@
-package com.sparta.notice.jwt;
+package com.sparta.jwtt.security.jwt;
 
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.NoSuchElementException;
 
+@Setter
 @Component
 public class HeaderTokenExtractor {
 

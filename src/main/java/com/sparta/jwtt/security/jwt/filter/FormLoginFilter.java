@@ -1,8 +1,9 @@
-package com.sparta.springcore.security.filter;
+package com.sparta.jwtt.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,7 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+@Setter
 public class FormLoginFilter extends UsernamePasswordAuthenticationFilter {
     final private ObjectMapper objectMapper;
 
@@ -26,11 +27,11 @@ public class FormLoginFilter extends UsernamePasswordAuthenticationFilter {
         UsernamePasswordAuthenticationToken authRequest;
         try {
             JsonNode requestBody = objectMapper.readTree(request.getInputStream());
-            String username = requestBody.get("username").asText();
+            String nickname = requestBody.get("nickname").asText();
             String password = requestBody.get("password").asText();
-            authRequest = new UsernamePasswordAuthenticationToken(username, password);
+            authRequest = new UsernamePasswordAuthenticationToken(nickname, password);
         } catch (Exception e) {
-            throw new RuntimeException("username, password 입력이 필요합니다. (JSON)");
+            throw new RuntimeException("nickname, password 입력이 필요합니다. (JSON)");
         }
 
         setDetails(request, authRequest);

@@ -1,7 +1,7 @@
-package com.sparta.springcore.security;
+package com.sparta.jwtt.security.jwt;
 
-import com.sparta.springcore.model.User;
-import com.sparta.springcore.repository.UserRepository;
+import com.sparta.jwtt.Dto.UserRepository;
+import com.sparta.jwtt.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,10 +18,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Can't find " + username));
+    public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
+        Users users = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UsernameNotFoundException("Can't find " + nickname));
 
-        return new UserDetailsImpl(user);
+        return new UserDetailsImpl(users);
     }
 }

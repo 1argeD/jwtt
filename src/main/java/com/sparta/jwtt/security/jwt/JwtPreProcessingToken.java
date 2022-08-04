@@ -1,7 +1,9 @@
-package com.sparta.notice.jwt;
+package com.sparta.jwtt.security.jwt;
 
+import lombok.Setter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+@Setter
 public class JwtPreProcessingToken extends UsernamePasswordAuthenticationToken {
 
     private JwtPreProcessingToken(

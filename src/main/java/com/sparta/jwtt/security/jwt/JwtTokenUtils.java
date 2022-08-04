@@ -1,8 +1,7 @@
-package com.sparta.notice.jwt;
+package com.sparta.jwtt.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.sparta.notice.Security.UserDetailsImpl;
 
 import java.util.Date;
 
@@ -27,7 +26,7 @@ public final class JwtTokenUtils {
         try {
             token = JWT.create()
                     .withIssuer("sparta")
-                    .withClaim(CLAIM_USER_NAME, userDetails.getUsername())
+                    .withClaim(CLAIM_USER_NAME, userDetails.getNickname())
                      // 토큰 만료 일시 = 현재 시간 + 토큰 유효기간)
                     .withClaim(CLAIM_EXPIRED_DATE, new Date(System.currentTimeMillis() + JWT_TOKEN_VALID_MILLI_SEC))
                     .sign(generateAlgorithm());

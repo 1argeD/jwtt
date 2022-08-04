@@ -1,68 +1,80 @@
-package com.sparta.springcore.controller;
+package com.sparta.jwtt.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sparta.springcore.dto.SignupRequestDto;
-import com.sparta.springcore.dto.UserInfoDto;
-import com.sparta.springcore.model.UserRoleEnum;
-import com.sparta.springcore.security.UserDetailsImpl;
-import com.sparta.springcore.service.KakaoUserService;
-import com.sparta.springcore.service.UserService;
+import com.sparta.jwtt.Dto.SignupRequestDto;
+import com.sparta.jwtt.Dto.UserInfoDto;
+import com.sparta.jwtt.Dto.commentRequestDto;
+import com.sparta.jwtt.Dto.noticeDto;
+import com.sparta.jwtt.model.UserRoleEnum;
+import com.sparta.jwtt.model.notice;
+import com.sparta.jwtt.security.jwt.UserDetailsImpl;
+import com.sparta.jwtt.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.List;
 
 @Controller
 public class UserController {
 
     private final UserService userService;
-    private final KakaoUserService kakaoUserService;
 
     @Autowired
-    public UserController(UserService userService, KakaoUserService kakaoUserService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.kakaoUserService = kakaoUserService;
     }
 
     // 회원 로그인 페이지
-    @GetMapping("/user/loginView")
+    @GetMapping("/api/member/login")
     public String login() {
         return "login";
     }
 
     // 회원 가입 페이지
-    @GetMapping("/user/signup")
+    @GetMapping("/api/member/signup")
     public String signup() {
         return "signup";
     }
 
     // 회원 가입 요청 처리
-    @PostMapping("/user/signup")
+    @PostMapping("/api/member/signup")
     public String registerUser(SignupRequestDto requestDto) {
         userService.registerUser(requestDto);
-        return "redirect:/user/loginView";
+        return "redirect:/api/member/login";
     }
+
+    @PostMapping("/api/auth/post")
+    public com.sparta.jwtt.controller.noticeC notice(noticeDto requestDto) {
+        com.sparta.jwtt.controller.noticeC notice = null;
+        noticeDto<notice> noticeDto = new noticeDto<>(true, notice, null);
+        notice = new com.sparta.jwtt.controller.noticeC(requestDto) {
+        };
+        return notice;
+    }
+
+    @PostMapping("/api/auth/comment")
+    public Comment<N> createComment(@RequestBody noticeDto requestDto){
+        Comment<N> comment = new Comment<>();
+        commentRequestDto.save(comment);
+        return new Comment<N>();
+
+    }
+
+    
 
     // 회원 관련 정보 받기
     @PostMapping("/user/userinfo")
     @ResponseBody
     public UserInfoDto getUserInfo(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        String username = userDetails.getUser().getUsername();
+        String nickname = userDetails.getUser().getNickname();
         UserRoleEnum role = userDetails.getUser().getRole();
         boolean isAdmin = (role == UserRoleEnum.ADMIN);
 
-        return new UserInfoDto(username, isAdmin);
+        return new UserInfoDto(nickname, isAdmin);
     }
 
-    @GetMapping("/user/kakao/callback")
-    public String kakaoLogin(@RequestParam String code) throws JsonProcessingException {
-        kakaoUserService.kakaoLogin(code);
-        return "redirect:/";
+    public class N {
     }
 }

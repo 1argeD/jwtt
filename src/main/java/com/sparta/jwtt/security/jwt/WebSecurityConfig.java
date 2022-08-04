@@ -1,10 +1,10 @@
-package com.sparta.springcore.security;
+package com.sparta.jwtt.security.jwt;
 
-import com.sparta.springcore.security.filter.FormLoginFilter;
-import com.sparta.springcore.security.filter.JwtAuthFilter;
-import com.sparta.springcore.security.jwt.HeaderTokenExtractor;
-import com.sparta.springcore.security.provider.FormLoginAuthProvider;
-import com.sparta.springcore.security.provider.JWTAuthProvider;
+
+import com.sparta.jwtt.security.jwt.filter.FormLoginFilter;
+import com.sparta.jwtt.security.jwt.filter.JwtAuthFilter;
+import com.sparta.jwtt.security.jwt.provider.FormLoginAuthProvider;
+import com.sparta.jwtt.security.jwt.provider.JWTAuthProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,19 +13,25 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import javax.servlet.Filter;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("ALL")
 @Configuration
 @EnableWebSecurity // 스프링 Security 지원을 가능하게 함
 @EnableGlobalMethodSecurity(securedEnabled = true) // @Secured 어노테이션 활성화
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
+public class WebSecurityConfig implements WebSecurityConfigcopy {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring()
+                .antMatchers("/h2-console/**");
+    }
     private final JWTAuthProvider jwtAuthProvider;
     private final HeaderTokenExtractor headerTokenExtractor;
 
@@ -42,14 +48,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
+    @Bean
     public void configure(AuthenticationManagerBuilder auth) {
         auth
                 .authenticationProvider(formLoginAuthProvider())
                 .authenticationProvider(jwtAuthProvider);
     }
+//    @Bean
+//    public void configure()
 
-    @Override
+    @Bean
     public void configure(WebSecurity web) {
         // h2-console 사용에 대한 허용 (CSRF, FrameOptions 무시)
         web
@@ -57,7 +65,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/h2-console/**");
     }
 
-    @Override
+    @Bean
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
 
@@ -66,7 +74,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-/*
+        /*
          * 1.
          * UsernamePasswordAuthenticationFilter 이전에 FormLoginFilter, JwtFilter 를 등록합니다.
          * FormLoginFilter : 로그인 인증을 실시합니다.
@@ -80,21 +88,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest()
                 .permitAll()
                 .and()
-                // [로그아웃 기능]
-                .logout()
-                // 로그아웃 요청 처리 URL
-                .logoutUrl("/user/logout")
+                .formLogin()
+                .loginPage("/api/member/login")
+                .defaultSuccessUrl("/")
+                .failureUrl("/api/member/login?error")
                 .permitAll()
+                // [로그아웃 기능]
+                // 로그아웃 요청 처리 URL
                 .and()
-                .exceptionHandling()
+                .logout();
+//                .exceptionHandling()
                 // "접근 불가" 페이지 URL 설정
-                .accessDeniedPage("/forbidden.html");
+//                .accessDeniedPage("/forbidden.html");
     }
 
     @Bean
     public FormLoginFilter formLoginFilter() throws Exception {
-        FormLoginFilter formLoginFilter = new FormLoginFilter(authenticationManager());
-        formLoginFilter.setFilterProcessesUrl("/user/login");
+        FormLoginFilter formLoginFilter = new FormLoginFilter((AuthenticationManager) clone());
+        formLoginFilter.setFilterProcessesUrl("/api/member/login");
         formLoginFilter.setAuthenticationSuccessHandler(formLoginSuccessHandler());
         formLoginFilter.afterPropertiesSet();
         return formLoginFilter;
@@ -110,19 +121,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new FormLoginAuthProvider(encodePassword());
     }
 
-    private JwtAuthFilter jwtFilter() throws Exception {
+    private Filter jwtFilter() throws Exception {
         List<String> skipPathList = new ArrayList<>();
 
-        // Static 정보 접근 허용
-        skipPathList.add("GET,/images/**");
-        skipPathList.add("GET,/css/**");
+//        // Static 정보 접근 허용
+//        skipPathList.add("GET,/images/**");
+//        skipPathList.add("GET,/css/**");
 
         // h2-console 허용
         skipPathList.add("GET,/h2-console/**");
         skipPathList.add("POST,/h2-console/**");
         // 회원 관리 API 허용
-        skipPathList.add("GET,/user/**");
-        skipPathList.add("POST,/user/signup");
+        skipPathList.add("GET,/api/member/**");
+        skipPathList.add("POST,/api/member/signup");
 
         skipPathList.add("GET,/");
         skipPathList.add("GET,/basic.js");
@@ -138,7 +149,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 matcher,
                 headerTokenExtractor
         );
-        filter.setAuthenticationManager(super.authenticationManagerBean());
+        filter.setAuthenticationManager((AuthenticationManager) super.clone());
 
         return filter;
     }
@@ -146,6 +157,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+        return (AuthenticationManager) super.clone();
     }
 }

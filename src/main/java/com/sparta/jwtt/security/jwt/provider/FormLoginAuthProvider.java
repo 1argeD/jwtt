@@ -1,6 +1,7 @@
-package com.sparta.springcore.security.provider;
+package com.sparta.jwtt.security.jwt.provider;
 
-import com.sparta.springcore.security.UserDetailsImpl;
+import com.sparta.jwtt.security.jwt.UserDetailsImpl;
+import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.annotation.Resource;
 
+@Setter
 public class FormLoginAuthProvider implements AuthenticationProvider {
 
     @Resource(name="userDetailsServiceImpl")
@@ -25,13 +27,13 @@ public class FormLoginAuthProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
         // FormLoginFilter 에서 생성된 토큰으로부터 아이디와 비밀번호를 조회함
-        String username = token.getName();
+        String nickname = token.getName();
         String password = (String) token.getCredentials();
 
         // UserDetailsService 를 통해 DB에서 username 으로 사용자 조회
-        UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
+        UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(nickname);
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException(userDetails.getUsername() + "Invalid password");
+            throw new BadCredentialsException(userDetails.getNickname() + "Invalid password");
         }
 
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
